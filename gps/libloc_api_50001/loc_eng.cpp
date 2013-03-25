@@ -2140,11 +2140,12 @@ static int loc_eng_set_privacy(loc_eng_data_s_type &loc_eng_data,
 {
     ENTRY_LOG();
     INIT_CHECK(loc_eng_data.context, return -1);
+#if 0
     loc_eng_msg_privacy *msg(
         new loc_eng_msg_privacy(&loc_eng_data, privacy_setting));
     msg_q_snd((void*)((LocEngContext*)(loc_eng_data.context))->deferred_q,
               msg, loc_eng_free_msg);
-
+#endif
     EXIT_LOG(%d, 0);
     return 0;
 }
