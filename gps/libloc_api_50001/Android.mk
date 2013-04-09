@@ -8,6 +8,10 @@ ifeq ($(call is-board-platform-in-list,$(BIT_ENABLED_BOARD_PLATFORM_LIST)),true)
 FEATURE_GNSS_BIT_API := true
 endif # is-board-platform-in-list
 
+ifeq ($(BOARD_GPS_SET_PRIVACY),true)
+LOCAL_CFLAGS += -DSET_PRIVACY
+endif
+
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
