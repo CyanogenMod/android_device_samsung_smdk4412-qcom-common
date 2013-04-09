@@ -1796,8 +1796,11 @@ static void loc_eng_deferred_action_thread(void* arg)
         case LOC_ENG_MSG_PRIVACY:
         {
             loc_eng_msg_privacy *privacyMsg = (loc_eng_msg_privacy*)msg;
+#ifdef SET_PRIVACY
+            loc_eng_data_p->client_handle->setPrivacy(privacyMsg->privacy_setting);
+#else
             LOC_LOGE("Ignoring call to setPrivacy");
-            //loc_eng_data_p->client_handle->setPrivacy(privacyMsg->privacy_setting);
+#endif
         }
         break;
 
@@ -2140,7 +2143,7 @@ static int loc_eng_set_privacy(loc_eng_data_s_type &loc_eng_data,
 {
     ENTRY_LOG();
     INIT_CHECK(loc_eng_data.context, return -1);
-#if 0
+#ifdef SET_PRIVACY
     loc_eng_msg_privacy *msg(
         new loc_eng_msg_privacy(&loc_eng_data, privacy_setting));
     msg_q_snd((void*)((LocEngContext*)(loc_eng_data.context))->deferred_q,
