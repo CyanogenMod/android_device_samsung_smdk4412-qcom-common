@@ -14,11 +14,12 @@ LOCAL_SRC_FILES += \
     loc_log.cpp \
     loc_cfg.cpp \
     msg_q.c \
-    linked_list.c
+    linked_list.c \
+    loc_target.cpp
 
 LOCAL_CFLAGS += \
-    -fno-short-enums \
-    -D_ANDROID_
+     -fno-short-enums \
+     -D_ANDROID_
 
 LOCAL_LDFLAGS += -Wl,--export-dynamic
 
@@ -27,11 +28,12 @@ LOCAL_C_INCLUDES:=
 
 LOCAL_COPY_HEADERS_TO:= gps.utils/
 LOCAL_COPY_HEADERS:= \
-    loc_log.h \
-    loc_cfg.h \
-    log_util.h \
-    linked_list.h \
-    msg_q.h
+   loc_log.h \
+   loc_cfg.h \
+   log_util.h \
+   linked_list.h \
+   msg_q.h \
+   loc_target.h
 
 LOCAL_MODULE := libgps.utils
 
