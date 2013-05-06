@@ -1,12 +1,4 @@
 ifneq ($(BUILD_TINY_ANDROID),true)
-#Compile this library only for builds with the latest modem image
-
-BIT_ENABLED_BOARD_PLATFORM_LIST := msm7630_fusion
-BIT_ENABLED_BOARD_PLATFORM_LIST += msm8660
-BIT_ENABLED_BOARD_PLATFORM_LIST += msm8960
-ifeq ($(call is-board-platform-in-list,$(BIT_ENABLED_BOARD_PLATFORM_LIST)),true)
-FEATURE_GNSS_BIT_API := true
-endif # is-board-platform-in-list
 
 ifeq ($(BOARD_GPS_SET_PRIVACY),true)
 LOCAL_CFLAGS += -DSET_PRIVACY
@@ -31,24 +23,24 @@ LOCAL_SRC_FILES += \
     LocApiAdapter.cpp
 
 LOCAL_CFLAGS += \
-    -fno-short-enums \
-    -D_ANDROID_ \
-    -DNEW_QC_GPS
+     -fno-short-enums \
+     -D_ANDROID_ \
+     -DNEW_QC_GPS
 
 LOCAL_C_INCLUDES:= \
     $(TARGET_OUT_HEADERS)/gps.utils
 
 LOCAL_COPY_HEADERS_TO:= libloc_eng/
 LOCAL_COPY_HEADERS:= \
-    LocApiAdapter.h \
-    loc.h \
-    loc_eng.h \
-    loc_eng_xtra.h \
-    loc_eng_ni.h \
-    loc_eng_agps.h \
-    loc_eng_msg.h \
-    loc_eng_msg_id.h \
-    loc_eng_log.h
+   LocApiAdapter.h \
+   loc.h \
+   loc_eng.h \
+   loc_eng_xtra.h \
+   loc_eng_ni.h \
+   loc_eng_agps.h \
+   loc_eng_msg.h \
+   loc_eng_msg_id.h \
+   loc_eng_log.h
 
 LOCAL_PRELINK_MODULE := false
 
@@ -71,11 +63,10 @@ LOCAL_SRC_FILES += \
     loc_eng_agps.cpp \
     loc_eng_xtra.cpp \
     loc_eng_ni.cpp \
-    loc_eng_log.cpp
+    loc_eng_log.cpp \
+    loc_eng_nmea.cpp
 
-ifeq ($(FEATURE_GNSS_BIT_API), true)
 LOCAL_CFLAGS += -DFEATURE_GNSS_BIT_API
-endif # FEATURE_GNSS_BIT_API
 
 LOCAL_SRC_FILES += \
     loc_eng_dmn_conn.cpp \
@@ -85,9 +76,9 @@ LOCAL_SRC_FILES += \
     loc_eng_dmn_conn_glue_pipe.c
 
 LOCAL_CFLAGS += \
-    -fno-short-enums \
-    -D_ANDROID_ \
-	-DNEW_QC_GPS
+     -fno-short-enums \
+     -D_ANDROID_ \
+     -DNEW_QC_GPS
 
 LOCAL_C_INCLUDES:= \
     $(TARGET_OUT_HEADERS)/gps.utils \
@@ -119,7 +110,7 @@ LOCAL_SRC_FILES += \
 LOCAL_CFLAGS += \
     -fno-short-enums \
     -D_ANDROID_ \
-	-DNEW_QC_GPS
+    -DNEW_QC_GPS
 
 ## Includes
 LOCAL_C_INCLUDES:= \
