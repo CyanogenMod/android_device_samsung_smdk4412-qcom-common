@@ -19,3 +19,13 @@ COMMON_PATH := device/samsung/smdk4412-qcom-common
 # GPS
 PRODUCT_PACKAGES += \
     gps.default
+
+ifneq ($(filter t0lte t0lteatt t0ltetmo,$(TARGET_DEVICE)),)
+    GPS_CONF := $(COMMON_PATH)/gps/gps-cdma.conf
+else
+    GPS_CONF := $(COMMON_PATH)/gps/gps.conf
+endif
+
+PRODUCT_COPY_FILES += \
+    $(GPS_CONF):/system/etc/gps.conf
+
