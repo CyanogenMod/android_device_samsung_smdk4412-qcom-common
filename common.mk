@@ -21,9 +21,9 @@ PRODUCT_PACKAGES += \
     gps.default
 
 ifneq ($(filter t0ltecdma i605 l900 r950,$(TARGET_DEVICE)),)
-    GPS_CONF := $(COMMON_PATH)/gps/gps-cdma.conf
-else
     GPS_CONF := $(COMMON_PATH)/gps/gps.conf
+else
+    GPS_CONF := $(COMMON_PATH)/gps/gps-cdma.conf
 endif
 
 PRODUCT_COPY_FILES += \
