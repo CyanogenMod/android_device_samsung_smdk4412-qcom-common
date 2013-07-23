@@ -278,6 +278,12 @@ typedef uint16_t AGpsStatusValue;
  * Name for the AGPS-RIL interface.
  */
 #define AGPS_RIL_INTERFACE      "agps_ril"
+
+/**
+ * The GPS chipset can use Psc for AGPS.
+ */
+#define AGPS_USE_PSC
+
 /**
 * Name for ULP Phone Context Interface
 */
@@ -471,9 +477,8 @@ typedef struct {
     uint16_t mcc;
     uint16_t mnc;
     uint16_t lac;
-#if 1
-    /** Placeholder for Samsung ABI compat */
-    uint16_t unknown;
+#ifdef AGPS_USE_PSC
+    uint16_t psc;
 #endif
     uint32_t cid;
 } AGpsRefLocationCellID;
