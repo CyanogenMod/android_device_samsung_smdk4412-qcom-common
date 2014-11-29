@@ -18,14 +18,18 @@ COMMON_PATH := device/samsung/smdk4412-qcom-common
 
 # GPS
 PRODUCT_PACKAGES += \
-    gps.default
+    gps.default \
+    libgps.utils \
+    libloc_core \
+    libloc_eng
 
 ifeq ($(TARGET_VOICE_TECH), cdma)
-    GPS_CONF := $(COMMON_PATH)/gps/gps-cdma.conf
+    GPS_CONF := $(COMMON_PATH)/gps/etc/gps-cdma.conf
 else
-    GPS_CONF := $(COMMON_PATH)/gps/gps.conf
+    GPS_CONF := $(COMMON_PATH)/gps/etc/gps.conf
 endif
 
 PRODUCT_COPY_FILES += \
-    $(GPS_CONF):/system/etc/gps.conf
+    $(GPS_CONF):/system/etc/gps.conf \
+    $(LOCAL_PATH)/gps/etc/sap.conf:/system/etc/sap.conf
 
