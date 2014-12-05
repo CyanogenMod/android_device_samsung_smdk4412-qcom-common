@@ -20,4 +20,6 @@ TARGET_SPECIFIC_HEADER_PATH := device/samsung/smdk4412-qcom-common/include
 
 # GPS
 TARGET_NO_RPC := true
-#BOARD_HAVE_NEW_QC_GPS := true
+
+# Radio
+BOARD_RIL_CLASS := ../../../device/samsung/smdk4412-qcom-common/ril

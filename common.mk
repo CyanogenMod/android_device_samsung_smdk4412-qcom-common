@@ -33,3 +33,7 @@ PRODUCT_COPY_FILES += \
     $(GPS_CONF):/system/etc/gps.conf \
     $(LOCAL_PATH)/gps/etc/sap.conf:/system/etc/sap.conf
 
+# RIL
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.telephony.ril_class=smdk4x12QComRIL
+
