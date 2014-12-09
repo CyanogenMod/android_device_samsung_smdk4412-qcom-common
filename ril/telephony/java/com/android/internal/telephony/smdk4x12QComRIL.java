@@ -304,6 +304,8 @@ public class smdk4x12QComRIL extends RIL implements CommandsInterface {
             if (isGSM)
                 p.readInt();
             dc.isVoice = (0 == voiceSettings) ? false : true;
+            if(driverCallU || (driverCall && !isGSM) || mRilVersion < 7 ? false : true)
+                 p.readInt();
             dc.isVoicePrivacy = (0 != p.readInt());
             if (isGSM) {
                 p.readInt();
