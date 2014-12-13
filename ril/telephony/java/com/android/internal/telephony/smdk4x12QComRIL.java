@@ -301,17 +301,10 @@ public class smdk4x12QComRIL extends RIL implements CommandsInterface {
             dc.isMT = (0 != p.readInt());
             dc.als = p.readInt();
             voiceSettings = p.readInt();
-            if (isGSM)
-                p.readInt();
             dc.isVoice = (0 == voiceSettings) ? false : true;
             if(driverCallU || (driverCall && !isGSM) || mRilVersion < 7 ? false : true)
                  p.readInt();
             dc.isVoicePrivacy = (0 != p.readInt());
-            if (isGSM) {
-                p.readInt();
-                p.readInt();
-                p.readString();
-            }
             dc.number = p.readString();
             int np = p.readInt();
             dc.numberPresentation = DriverCall.presentationFromCLIP(np);
