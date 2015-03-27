@@ -62,14 +62,6 @@ public:
                                  void* svExt) {
         return false;
     }
-    inline virtual bool reportSvMeasurement(GnssSvMeasurementSet &svMeasurementSet) {
-        return false;
-    }
-
-    inline virtual bool reportSvPolynomial(GnssSvPolynomial &svPolynomial)
-    {
-       return false;
-    }
     inline virtual bool reportStatus(GpsStatusValue status) {
         return false;
     }

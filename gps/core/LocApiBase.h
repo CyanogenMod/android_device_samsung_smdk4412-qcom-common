@@ -52,13 +52,6 @@ int decodeAddress(char *addr_string, int string_size,
 #define TO_1ST_HANDLING_ADAPTER(adapters, call)                              \
     for (int i = 0; i <MAX_ADAPTERS && NULL != (adapters)[i] && !(call); i++);
 
-enum xtra_version_check {
-    DISABLED,
-    AUTO,
-    XTRA2,
-    XTRA3
-};
-
 class LocAdapterBase;
 struct LocSsrMsg;
 struct LocOpenMsg;
@@ -112,8 +105,6 @@ public:
     void reportSv(GpsSvStatus &svStatus,
                   GpsLocationExtended &locationExtended,
                   void* svExt);
-    void reportSvMeasurement(GnssSvMeasurementSet &svMeasurementSet);
-    void reportSvPolynomial(GnssSvPolynomial &svPolynomial);
     void reportStatus(GpsStatusValue status);
     void reportNmea(const char* nmea, int length);
     void reportXtraServer(const char* url1, const char* url2,
@@ -221,7 +212,6 @@ public:
       -1 on failure
      */
     virtual int getGpsLock(void);
-    virtual enum loc_api_adapter_err setXtraVersionCheck(enum xtra_version_check check);
 };
 
 typedef LocApiBase* (getLocApi_t)(const MsgTask* msgTask,

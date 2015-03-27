@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -66,13 +66,6 @@ void LocAdapterBase::
              void* svExt)
 DEFAULT_IMPL()
 
-void LocAdapterBase::
-    reportSvMeasurement(GnssSvMeasurementSet &svMeasurementSet)
-DEFAULT_IMPL()
-
-void LocAdapterBase::
-    reportSvPolynomial(GnssSvPolynomial &svPolynomial)
-DEFAULT_IMPL()
 
 void LocAdapterBase::
     reportStatus(GpsStatusValue status)
