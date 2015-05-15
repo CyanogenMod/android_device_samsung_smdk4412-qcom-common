@@ -18,6 +18,8 @@ COMMON_PATH := device/samsung/smdk4412-qcom-common
 
 TARGET_SPECIFIC_HEADER_PATH := device/samsung/smdk4412-qcom-common/include
 
+BOARD_KERNEL_CMDLINE := console=ttySAC2,115200
+
 # GPS
 TARGET_NO_RPC := true
 
