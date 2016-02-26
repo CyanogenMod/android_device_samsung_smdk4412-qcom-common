@@ -59,8 +59,6 @@ import com.android.internal.telephony.uicc.IccCardStatus;
  */
 public class smdk4x12QComRIL extends RIL implements CommandsInterface {
 
-    private boolean setPreferredNetworkTypeSeen = false;
-
     private AudioManager mAudioManager;
 
     private Object mSMSLock = new Object();
@@ -667,18 +665,5 @@ public class smdk4x12QComRIL extends RIL implements CommandsInterface {
             AsyncResult.forMessage(response, ret, null);
             response.sendToTarget();
         }
-    }
-
-    @Override
-    public void setPreferredNetworkType(int networkType , Message response) {
-        riljLog("setPreferredNetworkType: " + networkType);
-
-        if (!setPreferredNetworkTypeSeen) {
-            riljLog("Need to reboot modem!");
-            setRadioPower(false, null);
-            setPreferredNetworkTypeSeen = true;
-        }
-
-        super.setPreferredNetworkType(networkType, response);
     }
 }
