@@ -311,10 +311,7 @@ public class smdk4x12QComRIL extends RIL implements CommandsInterface {
             case RIL_UNSOL_RIL_CONNECTED:
                 ret = responseInts(p);
                 setRadioPower(false, null);
-                if (!setPreferredNetworkTypeSeen) {
-                    Rlog.v(RILJ_LOG_TAG, "smdk4x12QComRIL: connected, setting network type to " + mPreferredNetworkType);
-                    setPreferredNetworkType(mPreferredNetworkType, null);
-                }
+                setPreferredNetworkType(mPreferredNetworkType, null);
                 setCdmaSubscriptionSource(mCdmaSubscription, null);
                 if(mRilVersion >= 8)
                     setCellInfoListRate(Integer.MAX_VALUE, null);
@@ -677,6 +674,8 @@ public class smdk4x12QComRIL extends RIL implements CommandsInterface {
         riljLog("setPreferredNetworkType: " + networkType);
 
         if (!setPreferredNetworkTypeSeen) {
+            riljLog("Need to reboot modem!");
+            setRadioPower(false, null);
             setPreferredNetworkTypeSeen = true;
         }
 
