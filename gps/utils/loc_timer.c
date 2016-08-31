@@ -155,9 +155,7 @@ void* loc_timer_start(unsigned int msec, loc_timer_callback cb_func,
         goto attr_err;
     }
 
-    LOC_LOGD("%s:%d]: Created thread with id: %d\n",
-             __func__, __LINE__, (int)id);
-    goto _err;
+
 
 attr_err:
     pthread_attr_destroy(&tattr);
@@ -165,11 +163,12 @@ mutex_err:
     pthread_mutex_destroy(&t->timer_mutex);
 cond_err:
     pthread_cond_destroy(&t->timer_cond);
-t_err:
-    free(t);
 _err:
     LOC_LOGD("%s:%d]: Exit\n", __func__, __LINE__);
     return t;
+t_err:
+    free(t);
+
 }
 
 void loc_timer_stop(void* handle) {
