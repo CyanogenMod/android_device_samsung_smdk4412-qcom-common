@@ -67,7 +67,8 @@ typedef unsigned char boolean;
 #define FAILURE                 FALSE
 #define INVALID_ATL_CONNECTION_HANDLE -1
 
-#define MAX_XTRA_SERVER_URL_LENGTH 256
+#define gps_conf ContextBase::mGps_conf
+#define sap_conf ContextBase::mSap_conf
 
 enum loc_nmea_provider_e_type {
     NMEA_PROVIDER_AP = 0, // Application Processor Provider of NMEA
@@ -90,9 +91,13 @@ typedef struct loc_eng_data_s
     agps_status_extended           agps_status_cb;
     gps_nmea_callback              nmea_cb;
     gps_ni_notify_callback         ni_notify_cb;
+    gps_set_capabilities           set_capabilities_cb;
     gps_acquire_wakelock           acquire_wakelock_cb;
     gps_release_wakelock           release_wakelock_cb;
     gps_request_utc_time           request_utc_time_cb;
+    gnss_set_system_info           set_system_info_cb;
+    gnss_sv_status_callback        gnss_sv_status_cb;
+    gnss_measurement_callback      gnss_measurement_cb;
     boolean                        intermediateFix;
     AGpsStatusValue                agps_status;
     loc_eng_xtra_data_s_type       xtra_module_data;
@@ -117,7 +122,8 @@ typedef struct loc_eng_data_s
 
     // For nmea generation
     boolean generateNmea;
-    uint32_t sv_used_mask;
+    uint32_t gps_used_mask;
+    uint32_t glo_used_mask;
     float hdop;
     float pdop;
     float vdop;
@@ -137,51 +143,7 @@ typedef struct loc_eng_data_s
     loc_ext_parser sv_ext_parser;
 } loc_eng_data_s_type;
 
-/* GPS.conf support */
-typedef struct loc_gps_cfg_s
-{
-    unsigned long  INTERMEDIATE_POS;
-    unsigned long  ACCURACY_THRES;
-    unsigned long  SUPL_VER;
-    unsigned long  CAPABILITIES;
-    unsigned long  QUIPC_ENABLED;
-    unsigned long  LPP_PROFILE;
-    uint8_t        NMEA_PROVIDER;
-    unsigned long  A_GLONASS_POS_PROTOCOL_SELECT;
-    char           XTRA_SERVER_1[MAX_XTRA_SERVER_URL_LENGTH];
-    char           XTRA_SERVER_2[MAX_XTRA_SERVER_URL_LENGTH];
-    char           XTRA_SERVER_3[MAX_XTRA_SERVER_URL_LENGTH];
-} loc_gps_cfg_s_type;
-
-typedef struct
-{
-    uint8_t        GYRO_BIAS_RANDOM_WALK_VALID;
-    double         GYRO_BIAS_RANDOM_WALK;
-    unsigned long  SENSOR_ACCEL_BATCHES_PER_SEC;
-    unsigned long  SENSOR_ACCEL_SAMPLES_PER_BATCH;
-    unsigned long  SENSOR_GYRO_BATCHES_PER_SEC;
-    unsigned long  SENSOR_GYRO_SAMPLES_PER_BATCH;
-    unsigned long  SENSOR_ACCEL_BATCHES_PER_SEC_HIGH;
-    unsigned long  SENSOR_ACCEL_SAMPLES_PER_BATCH_HIGH;
-    unsigned long  SENSOR_GYRO_BATCHES_PER_SEC_HIGH;
-    unsigned long  SENSOR_GYRO_SAMPLES_PER_BATCH_HIGH;
-    unsigned long  SENSOR_CONTROL_MODE;
-    unsigned long  SENSOR_USAGE;
-    unsigned long  SENSOR_ALGORITHM_CONFIG_MASK;
-    uint8_t        ACCEL_RANDOM_WALK_SPECTRAL_DENSITY_VALID;
-    double         ACCEL_RANDOM_WALK_SPECTRAL_DENSITY;
-    uint8_t        ANGLE_RANDOM_WALK_SPECTRAL_DENSITY_VALID;
-    double         ANGLE_RANDOM_WALK_SPECTRAL_DENSITY;
-    uint8_t        RATE_RANDOM_WALK_SPECTRAL_DENSITY_VALID;
-    double         RATE_RANDOM_WALK_SPECTRAL_DENSITY;
-    uint8_t        VELOCITY_RANDOM_WALK_SPECTRAL_DENSITY_VALID;
-    double         VELOCITY_RANDOM_WALK_SPECTRAL_DENSITY;
-    unsigned long  SENSOR_PROVIDER;
-} loc_sap_cfg_s_type;
-
-extern loc_gps_cfg_s_type gps_conf;
-extern loc_sap_cfg_s_type sap_conf;
-
+//loc_eng functions
 int  loc_eng_init(loc_eng_data_s_type &loc_eng_data,
                   LocCallbacks* callbacks,
                   LOC_API_ADAPTER_EVENT_MASK_T event,
@@ -201,35 +163,33 @@ int  loc_eng_set_position_mode(loc_eng_data_s_type &loc_eng_data,
                                LocPosMode &params);
 const void* loc_eng_get_extension(loc_eng_data_s_type &loc_eng_data,
                                   const char* name);
+int  loc_eng_set_server_proxy(loc_eng_data_s_type &loc_eng_data,
+                              LocServerType type, const char *hostname, int port);
+void loc_eng_mute_one_session(loc_eng_data_s_type &loc_eng_data);
+int loc_eng_read_config(void);
+
+//loc_eng_agps functions
 void loc_eng_agps_init(loc_eng_data_s_type &loc_eng_data,
                        AGpsExtCallbacks* callbacks);
 int  loc_eng_agps_open(loc_eng_data_s_type &loc_eng_data, AGpsExtType agpsType,
                       const char* apn, AGpsBearerType bearerType);
 int  loc_eng_agps_closed(loc_eng_data_s_type &loc_eng_data, AGpsExtType agpsType);
 int  loc_eng_agps_open_failed(loc_eng_data_s_type &loc_eng_data, AGpsExtType agpsType);
-
-int  loc_eng_set_server_proxy(loc_eng_data_s_type &loc_eng_data,
-                              LocServerType type, const char *hostname, int port);
-
-
 void loc_eng_agps_ril_update_network_availability(loc_eng_data_s_type &loc_eng_data,
                                                   int avaiable, const char* apn);
+int loc_eng_agps_install_certificates(loc_eng_data_s_type &loc_eng_data,
+                                      const DerEncodedCertificate* certificates,
+                                      size_t length);
 
-
-bool loc_eng_inject_raw_command(loc_eng_data_s_type &loc_eng_data,
-                                char* command, int length);
-
-
-void loc_eng_mute_one_session(loc_eng_data_s_type &loc_eng_data);
-
-int loc_eng_xtra_init (loc_eng_data_s_type &loc_eng_data,
+//loc_eng_xtra functions
+int  loc_eng_xtra_init (loc_eng_data_s_type &loc_eng_data,
                        GpsXtraExtCallbacks* callbacks);
-
-int loc_eng_xtra_inject_data(loc_eng_data_s_type &loc_eng_data,
+int  loc_eng_xtra_inject_data(loc_eng_data_s_type &loc_eng_data,
                              char* data, int length);
+int  loc_eng_xtra_request_server(loc_eng_data_s_type &loc_eng_data);
+void loc_eng_xtra_version_check(loc_eng_data_s_type &loc_eng_data, int check);
 
-int loc_eng_xtra_request_server(loc_eng_data_s_type &loc_eng_data);
-
+//loc_eng_ni functions
 extern void loc_eng_ni_init(loc_eng_data_s_type &loc_eng_data,
                             GpsNiExtCallbacks *callbacks);
 extern void loc_eng_ni_respond(loc_eng_data_s_type &loc_eng_data,
@@ -238,7 +198,12 @@ extern void loc_eng_ni_request_handler(loc_eng_data_s_type &loc_eng_data,
                                    const GpsNiNotification *notif,
                                    const void* passThrough);
 extern void loc_eng_ni_reset_on_engine_restart(loc_eng_data_s_type &loc_eng_data);
-int loc_eng_read_config(void);
+
+void loc_eng_configuration_update (loc_eng_data_s_type &loc_eng_data,
+                                   const char* config_data, int32_t length);
+int loc_eng_gps_measurement_init(loc_eng_data_s_type &loc_eng_data,
+                                 GpsMeasurementCallbacks* callbacks);
+void loc_eng_gps_measurement_close(loc_eng_data_s_type &loc_eng_data);
 
 #ifdef __cplusplus
 }

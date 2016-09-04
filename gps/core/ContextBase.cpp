@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -40,6 +40,27 @@
 
 namespace loc_core {
 
+loc_gps_cfg_s_type ContextBase::mGps_conf {0};
+loc_sap_cfg_s_type ContextBase::mSap_conf {0};
+
+uint32_t ContextBase::getCarrierCapabilities() {
+    #define carrierMSA (uint32_t)0x2
+    #define carrierMSB (uint32_t)0x1
+    #define gpsConfMSA (uint32_t)0x4
+    #define gpsConfMSB (uint32_t)0x2
+    uint32_t capabilities = mGps_conf.CAPABILITIES;
+    if ((mGps_conf.SUPL_MODE & carrierMSA) != carrierMSA) {
+        capabilities &= ~gpsConfMSA;
+    }
+    if ((mGps_conf.SUPL_MODE & carrierMSB) != carrierMSB) {
+        capabilities &= ~gpsConfMSB;
+    }
+
+    LOC_LOGV("getCarrierCapabilities: CAPABILITIES %x, SUPL_MODE %x, carrier capabilities %x",
+             mGps_conf.CAPABILITIES, mGps_conf.SUPL_MODE, capabilities);
+    return capabilities;
+}
+
 LBSProxyBase* ContextBase::getLBSProxy(const char* libName)
 {
     LBSProxyBase* proxy = NULL;
@@ -65,7 +86,7 @@ LocApiBase* ContextBase::createLocApi(LOC_API_ADAPTER_EVENT_MASK_T exMask)
 
     // first if can not be MPQ
     if (TARGET_MPQ != loc_get_target()) {
-        if (NULL == (locApi = mLBSProxy->getLocApi(mMsgTask, exMask))) {
+        if (NULL == (locApi = mLBSProxy->getLocApi(mMsgTask, exMask, this))) {
             void *handle = NULL;
             //try to see if LocApiV02 is present
             if((handle = dlopen("libloc_api_v02.so", RTLD_NOW)) != NULL) {
@@ -73,7 +94,7 @@ LocApiBase* ContextBase::createLocApi(LOC_API_ADAPTER_EVENT_MASK_T exMask)
                 getLocApi_t* getter = (getLocApi_t*)dlsym(handle, "getLocApi");
                 if(getter != NULL) {
                     LOC_LOGD("%s:%d]: getter is not NULL for LocApiV02", __func__, __LINE__);
-                    locApi = (*getter)(mMsgTask,exMask);
+                    locApi = (*getter)(mMsgTask, exMask, this);
                 }
             }
             // only RPC is the option now
@@ -85,7 +106,7 @@ LocApiBase* ContextBase::createLocApi(LOC_API_ADAPTER_EVENT_MASK_T exMask)
                     getLocApi_t* getter = (getLocApi_t*)dlsym(handle, "getLocApi");
                     if (NULL != getter) {
                         LOC_LOGD("%s:%d]: getter is not NULL in RPC", __func__, __LINE__);
-                        locApi = (*getter)(mMsgTask, exMask);
+                        locApi = (*getter)(mMsgTask, exMask, this);
                     }
                 }
             }
@@ -95,7 +116,7 @@ LocApiBase* ContextBase::createLocApi(LOC_API_ADAPTER_EVENT_MASK_T exMask)
     // locApi could still be NULL at this time
     // we would then create a dummy one
     if (NULL == locApi) {
-        locApi = new LocApiBase(mMsgTask, exMask);
+        locApi = new LocApiBase(mMsgTask, exMask, this);
     }
 
     return locApi;
