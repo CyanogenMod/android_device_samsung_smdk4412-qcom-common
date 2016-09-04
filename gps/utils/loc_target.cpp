@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -34,7 +34,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
-#include "hardware/gps.h"
+#include <hardware/gps.h>
 #include <cutils/properties.h>
 #include "loc_target.h"
 #include "loc_log.h"
@@ -53,11 +53,15 @@
 #define STR_SURF      "Surf"
 #define STR_MTP       "MTP"
 #define STR_APQ       "apq"
+#define STR_AUTO      "auto"
 #define IS_STR_END(c) ((c) == '\0' || (c) == '\n' || (c) == '\r')
 #define LENGTH(s) (sizeof(s) - 1)
 #define GPS_CHECK_NO_ERROR 0
 #define GPS_CHECK_NO_GPS_HW 1
-#define QCA1530_DETECT_TIMEOUT 30
+/* When system server is started, it uses 20 seconds as ActivityManager
+ * timeout. After that it sends SIGSTOP signal to process.
+ */
+#define QCA1530_DETECT_TIMEOUT 15
 #define QCA1530_DETECT_PRESENT "yes"
 #define QCA1530_DETECT_PROGRESS "detect"
 
@@ -99,7 +103,7 @@ static int read_a_line(const char * file_path, char * line, int line_size)
  */
 static bool is_qca1530(void)
 {
-    static const char qca1530_property_name[] = "persist.qca1530";
+    static const char qca1530_property_name[] = "sys.qca1530";
     bool res = false;
     int ret, i;
     char buf[PROPERTY_VALUE_MAX];
@@ -175,29 +179,83 @@ unsigned int loc_get_target(void)
     if (gTarget != (unsigned int)-1)
         return gTarget;
 
-    char hw_platform[]      = "/sys/devices/system/soc/soc0/hw_platform";
-    char id[]               = "/sys/devices/system/soc/soc0/id";
-    char mdm[]              = "/dev/mdm"; // No such file or directory
+    static const char hw_platform[]      = "/sys/devices/soc0/hw_platform";
+    static const char id[]               = "/sys/devices/soc0/soc_id";
+    static const char hw_platform_dep[]  =
+        "/sys/devices/system/soc/soc0/hw_platform";
+    static const char id_dep[]           = "/sys/devices/system/soc/soc0/id";
+    static const char mdm[]              = "/dev/mdm"; // No such file or directory
 
     char rd_hw_platform[LINE_LEN];
     char rd_id[LINE_LEN];
     char rd_mdm[LINE_LEN];
+    char baseband[LINE_LEN];
 
-    read_a_line(hw_platform, rd_hw_platform, LINE_LEN);
-    read_a_line(id, rd_id, LINE_LEN);
+    if (is_qca1530()) {
+        gTarget = TARGET_QCA1530;
+        goto detected;
+    }
 
-    if(!memcmp(rd_id, MPQ8064_ID_1, LENGTH(MPQ8064_ID_1)) && IS_STR_END(rd_id[LENGTH(MPQ8064_ID_1)]) )
-        gTarget = TARGET_MPQ;
-    else if( (!memcmp(rd_hw_platform, STR_LIQUID, LENGTH(STR_LIQUID)) && IS_STR_END(rd_hw_platform[LENGTH(STR_LIQUID)])) ||
-        (!memcmp(rd_hw_platform, STR_SURF,   LENGTH(STR_SURF))   && IS_STR_END(rd_hw_platform[LENGTH(STR_SURF)])) ) {
-        if(!read_a_line( mdm, rd_mdm, LINE_LEN))
-            gTarget = TARGET_MDM;
-        else if( (!memcmp(rd_id, APQ8064_ID_1, LENGTH(APQ8064_ID_1)) && IS_STR_END(rd_id[LENGTH(APQ8064_ID_1)])) ||
-                 (!memcmp(rd_id, APQ8064_ID_2, LENGTH(APQ8064_ID_2)) && IS_STR_END(rd_id[LENGTH(APQ8064_ID_2)])) )
+    loc_get_target_baseband(baseband, sizeof(baseband));
+
+    if (!access(hw_platform, F_OK)) {
+        read_a_line(hw_platform, rd_hw_platform, LINE_LEN);
+    } else {
+        read_a_line(hw_platform_dep, rd_hw_platform, LINE_LEN);
+    }
+    if (!access(id, F_OK)) {
+        read_a_line(id, rd_id, LINE_LEN);
+    } else {
+        read_a_line(id_dep, rd_id, LINE_LEN);
+    }
+    if( !memcmp(baseband, STR_AUTO, LENGTH(STR_AUTO)) )
+    {
+          gTarget = TARGET_AUTO;
+          goto detected;
+    }
+    if( !memcmp(baseband, STR_APQ, LENGTH(STR_APQ)) ){
+
+        if( !memcmp(rd_id, MPQ8064_ID_1, LENGTH(MPQ8064_ID_1))
+            && IS_STR_END(rd_id[LENGTH(MPQ8064_ID_1)]) )
+            gTarget = TARGET_MPQ;
+        else
             gTarget = TARGET_APQ_SA;
     }
-    else if( (!memcmp(rd_id, MSM8930_ID_1, LENGTH(MSM8930_ID_1)) && IS_STR_END(rd_id[LENGTH(MSM8930_ID_1)])) ||
-             (!memcmp(rd_id, MSM8930_ID_2, LENGTH(MSM8930_ID_2)) && IS_STR_END(rd_id[LENGTH(MSM8930_ID_2)])) )
-        gTarget = TARGET_MSM_NO_SSC;
+    else {
+        if( (!memcmp(rd_hw_platform, STR_LIQUID, LENGTH(STR_LIQUID))
+             && IS_STR_END(rd_hw_platform[LENGTH(STR_LIQUID)])) ||
+            (!memcmp(rd_hw_platform, STR_SURF,   LENGTH(STR_SURF))
+             && IS_STR_END(rd_hw_platform[LENGTH(STR_SURF)])) ||
+            (!memcmp(rd_hw_platform, STR_MTP,   LENGTH(STR_MTP))
+             && IS_STR_END(rd_hw_platform[LENGTH(STR_MTP)]))) {
+
+            if (!read_a_line( mdm, rd_mdm, LINE_LEN))
+                gTarget = TARGET_MDM;
+        }
+        else if( (!memcmp(rd_id, MSM8930_ID_1, LENGTH(MSM8930_ID_1))
+                   && IS_STR_END(rd_id[LENGTH(MSM8930_ID_1)])) ||
+                  (!memcmp(rd_id, MSM8930_ID_2, LENGTH(MSM8930_ID_2))
+                   && IS_STR_END(rd_id[LENGTH(MSM8930_ID_2)])) )
+             gTarget = TARGET_MSM_NO_SSC;
+        else
+             gTarget = TARGET_UNKNOWN;
+    }
+
+detected:
+    LOC_LOGD("HAL: %s returned %d", __FUNCTION__, gTarget);
     return gTarget;
+}
+
+/*Reads the property ro.lean to identify if this is a lean target
+  Returns:
+  0 if not a lean and mean target
+  1 if this is a lean and mean target
+*/
+int loc_identify_lean_target()
+{
+    int ret = 0;
+    char lean_target[PROPERTY_VALUE_MAX];
+    property_get("ro.lean", lean_target, "");
+    LOC_LOGD("%s:%d]: lean target: %s\n", __func__, __LINE__, lean_target);
+    return !(strncmp(lean_target, "true", PROPERTY_VALUE_MAX));
 }

@@ -30,7 +30,7 @@
 #define LOC_ENG_MSG_H
 
 
-#include "hardware/gps.h"
+#include <hardware/gps.h>
 #include <gps_extended.h>
 #include <stdlib.h>
 #include <string.h>
@@ -105,11 +105,11 @@ struct LocEngReportPosition : public LocMsg {
 
 struct LocEngReportSv : public LocMsg {
     LocAdapterBase* mAdapter;
-    const GpsSvStatus mSvStatus;
+    const GnssSvStatus mSvStatus;
     const GpsLocationExtended mLocationExtended;
     const void* mSvExt;
     LocEngReportSv(LocAdapterBase* adapter,
-                   GpsSvStatus &sv,
+                   GnssSvStatus &sv,
                    GpsLocationExtended &locExtended,
                    void* svExtended);
     virtual void proc() const;
@@ -287,6 +287,16 @@ struct LocEngGetZpp : public LocMsg {
     void locallog() const;
     virtual void log() const;
     void send() const;
+};
+
+struct LocEngReportGnssMeasurement : public LocMsg {
+    void* mLocEng;
+    const GnssData mGnssData;
+    LocEngReportGnssMeasurement(void* locEng,
+                               GnssData &gnssData);
+    virtual void proc() const;
+    void locallog() const;
+    virtual void log() const;
 };
 
 #ifdef __cplusplus
