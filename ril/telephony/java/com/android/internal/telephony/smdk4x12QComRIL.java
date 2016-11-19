@@ -241,9 +241,6 @@ public class smdk4x12QComRIL extends RIL implements CommandsInterface {
             dc.isMT = (0 != p.readInt());
             dc.als = p.readInt();
             voiceSettings = p.readInt();
-            if (isGSM){
-                p.readInt();
-            }
             dc.isVoice = (0 == voiceSettings) ? false : true;
             dc.isVoicePrivacy = (0 != p.readInt());
             if (isGSM) {
